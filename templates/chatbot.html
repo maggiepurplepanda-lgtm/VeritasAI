@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Assistant</title>
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px; background: #111827; border-right: 1px solid #334155; padding: 18px 14px; transition: width 0.25s ease; position: sticky; top: 0; height: 100vh;
+        }
+        .sidebar.collapsed { width: 82px; }
+        .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+        .brand { display: flex; align-items: center; gap: 10px; color: #38bdf8; font-weight: 700; }
+        .brand-mark { font-size: 1.5rem; }
+        .brand-text { transition: opacity 0.2s ease; }
+        .sidebar.collapsed .brand-text, .sidebar.collapsed .nav-label { display: none; }
+        .sidebar-toggle {
+            background: #1e293b; border: 1px solid #334155; color: #e2e8f0; width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
+        }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 12px; color: #cbd5e1; text-decoration: none; background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 12px 14px; font-weight: 600; transition: all 0.2s ease;
+        }
+        .sidebar-link:hover, .sidebar-link.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
+        .content-shell { flex: 1; padding: 28px; }
+        .chat-card {
+            background: #111827; border: 1px solid #334155; border-radius: 18px; overflow: hidden; max-width: 1100px; margin: 0 auto; height: calc(100vh - 90px); display: flex; flex-direction: column;
+        }
+        .chat-header {
+            background: #0f172a; border-bottom: 1px solid #334155; padding: 16px 18px; color: #38bdf8; font-weight: 700; font-size: 1.05rem;
+        }
+        .chat-presets { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 14px; background: #111827; border-bottom: 1px solid #334155; }
+        .btn-preset {
+            background: #1e293b; color: #38bdf8; border: 1px solid #38bdf8; border-radius: 8px; padding: 8px 10px; cursor: pointer; font-weight: 600;
+        }
+        .chat-messages { flex: 1; padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .chat-bubble { max-width: 80%; padding: 10px 12px; border-radius: 12px; line-height: 1.5; }
+        .chat-bubble.ai { background: #1e293b; align-self: flex-start; border: 1px solid #334155; }
+        .chat-bubble.user { background: #2563eb; align-self: flex-end; }
+        .chat-input-area { display: flex; gap: 10px; padding: 14px; border-top: 1px solid #334155; background: #0f172a; }
+        .chat-input-area input { flex: 1; background: #111827; border: 1px solid #334155; border-radius: 10px; padding: 12px; color: #f8fafc; }
+        .chat-input-area button { background: #38bdf8; color: #0f172a; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 700; cursor: pointer; }
+        body, .app-shell { background: var(--bg); color: var(--text); }
+        .sidebar, .chat-card { background: var(--panel); border-color: var(--border); }
+        .sidebar-link, .sidebar-toggle, .chat-presets, .chat-input-area input { background: var(--panel-soft); color: var(--text); border-color: var(--border); }
+        .chat-header, .chat-input-area { background: var(--bg); border-color: var(--border); }
+        .chat-bubble.ai { background: var(--panel-soft); border-color: var(--border); }
+        .chat-input-area button, .btn-preset { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+        .chat-card p { color: var(--muted); }
+        html, body { min-height: 100%; }
+        body { position: relative; isolation: isolate; overflow-x: hidden; }
+        body::before, body::after { content: ""; position: fixed; inset: -25%; z-index: -1; pointer-events: none; background: radial-gradient(circle at 20% 20%, rgba(56,189,248,.22), transparent 32%), radial-gradient(circle at 78% 70%, rgba(99,102,241,.18), transparent 30%), linear-gradient(125deg, #07111f, #172554 48%, #0b1324); animation: liquid-drift 18s ease-in-out infinite alternate; }
+        body::after { opacity: .55; filter: blur(45px); animation-duration: 25s; animation-direction: alternate-reverse; }
+        .sidebar, .chat-card { background: rgba(15,23,42,.64); border-color: rgba(226,232,240,.22); box-shadow: 0 18px 50px rgba(2,6,23,.26), inset 0 1px rgba(255,255,255,.14); backdrop-filter: blur(22px) saturate(135%); -webkit-backdrop-filter: blur(22px) saturate(135%); }
+        @keyframes liquid-drift { 0% { transform: translate3d(-2%, -1%, 0) scale(1); } 50% { transform: translate3d(2%, 2%, 0) scale(1.06); } 100% { transform: translate3d(-1%, 3%, 0) scale(1.02); } }
+        @media (prefers-reduced-motion: reduce) { body::before, body::after { animation: none; } }
+        :root[data-theme="light"] body::before, :root[data-theme="light"] body::after { background: radial-gradient(circle at 20% 20%, rgba(14,116,144,.18), transparent 32%), radial-gradient(circle at 78% 70%, rgba(79,70,229,.14), transparent 30%), linear-gradient(125deg, #dbeafe, #f8fafc 48%, #e0f2fe); }
+        :root[data-theme="light"] .sidebar, :root[data-theme="light"] .chat-card { background: rgba(255,255,255,.72); border-color: rgba(15,23,42,.2); box-shadow: 0 18px 50px rgba(15,23,42,.12), inset 0 1px rgba(255,255,255,.85); }
+    </style>
+    <script src="/static/theme.js"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <span class="brand-mark">⚖️</span>
+                    <span class="brand-text">VeritasAI</span>
+                </div>
+                <button class="sidebar-toggle" aria-label="Toggle Sidebar">☰</button>
+            </div>
+            <div class="theme-controls">
+                <button class="theme-toggle" type="button" aria-label="Toggle light and dark theme" aria-pressed="false">☾ Dark</button>
+                <input class="color-picker" type="color" aria-label="Choose accent color" value="#38bdf8">
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="sidebar-link"><span>📊</span><span class="nav-label">Dashboard</span></a>
+                <a href="/assistant" class="sidebar-link active"><span>🤖</span><span class="nav-label">Assistant</span></a>
+                <a href="/witnesses" class="sidebar-link"><span>👥</span><span class="nav-label">Witnesses</span></a>
+                <a href="/post" class="sidebar-link"><span>📄</span><span class="nav-label">Post</span></a>
+                <a href="/" class="sidebar-link"><span>🏠</span><span class="nav-label">Landing</span></a>
+            </nav>
+        </aside>
+
+        <main class="content-shell">
+            <div class="chat-card">
+                <div class="chat-header">🤖 Gemini Legal AI Assistant</div>
+                <div class="chat-presets">
+                    <button class="btn-preset" onclick="sendQuickPrompt('Suggest a high-impact follow-up question based on recent telemetry.')">🎯 Follow-up Q</button>
+                    <button class="btn-preset" onclick="sendQuickPrompt('Summarize witness posture and stress trends for the last 2 minutes.')">📊 Stress Trends</button>
+                    <button class="btn-preset" onclick="sendQuickPrompt('Identify inconsistencies between speech transcripts and stress spikes.')">⚠️ Discrepancies</button>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-bubble ai">Hello counsel. Ask me anything about witness behavior, stress anomalies, or cross-examination strategy.</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Ask Gemini AI..." onkeypress="handleKeyPress(event)" />
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/sidebar.js"></script>
+    <script>
+        function sendQuickPrompt(promptText) {
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.value = promptText;
+                sendMessage();
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') sendMessage();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input ? input.value.trim() : '';
+            if (!message) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            const userBubble = document.createElement('div');
+            userBubble.className = 'chat-bubble user';
+            userBubble.textContent = message;
+            chatMessages.appendChild(userBubble);
+
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            })
+            .then(async (res) => {
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    throw new Error(data.error || data.message || 'The server rejected the chat request.');
+                }
+
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'chat-bubble ai';
+                aiBubble.textContent = data.response || 'No response received.';
+                chatMessages.appendChild(aiBubble);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            })
+            .catch((err) => {
+                const errorBubble = document.createElement('div');
+                errorBubble.className = 'chat-bubble ai';
+                errorBubble.textContent = err.message || 'Error communicating with backend server.';
+                chatMessages.appendChild(errorBubble);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+        }
+    </script>
+</body>
+</html>

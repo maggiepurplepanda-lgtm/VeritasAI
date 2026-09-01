@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Deposition Brief</title>
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px; background: #111827; border-right: 1px solid #334155; padding: 18px 14px; transition: width 0.25s ease; position: sticky; top: 0; height: 100vh;
+        }
+        .sidebar.collapsed { width: 82px; }
+        .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+        .brand { display: flex; align-items: center; gap: 10px; color: #38bdf8; font-weight: 700; }
+        .brand-mark { font-size: 1.5rem; }
+        .brand-text { transition: opacity 0.2s ease; }
+        .sidebar.collapsed .brand-text, .sidebar.collapsed .nav-label { display: none; }
+        .sidebar-toggle {
+            background: #1e293b; border: 1px solid #334155; color: #e2e8f0; width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
+        }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 12px; color: #cbd5e1; text-decoration: none; background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 12px 14px; font-weight: 600; transition: all 0.2s ease;
+        }
+        .sidebar-link:hover, .sidebar-link.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
+        .content-shell { flex: 1; padding: 28px; }
+        .page-card {
+            background: #111827; border: 1px solid #334155; border-radius: 18px; padding: 22px; max-width: 1200px; margin: 0 auto;
+        }
+        .page-header h1 { color: #38bdf8; margin-bottom: 10px; }
+        .page-header p { color: #94a3b8; margin-bottom: 18px; }
+        .btn-action {
+            background: #38bdf8; color: #0f172a; border: none; border-radius: 8px; padding: 10px 16px; font-weight: 700; cursor: pointer;
+        }
+        .brief-output {
+            margin-top: 20px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 18px; min-height: 200px; white-space: pre-wrap; color: #cbd5e1; line-height: 1.6;
+        }
+        body, .app-shell { background: var(--bg); color: var(--text); }
+        .sidebar, .page-card, .brief-output { background: var(--panel); border-color: var(--border); }
+        .sidebar-link, .sidebar-toggle { background: var(--panel-soft); color: var(--text); border-color: var(--border); }
+        .btn-action { background: var(--accent); color: var(--accent-contrast); }
+        .page-card p { color: var(--muted) !important; }
+        html, body { min-height: 100%; }
+        body { position: relative; isolation: isolate; overflow-x: hidden; }
+        body::before, body::after { content: ""; position: fixed; inset: -25%; z-index: -1; pointer-events: none; background: radial-gradient(circle at 20% 20%, rgba(56,189,248,.22), transparent 32%), radial-gradient(circle at 78% 70%, rgba(99,102,241,.18), transparent 30%), linear-gradient(125deg, #07111f, #172554 48%, #0b1324); animation: liquid-drift 18s ease-in-out infinite alternate; }
+        body::after { opacity: .55; filter: blur(45px); animation-duration: 25s; animation-direction: alternate-reverse; }
+        .sidebar, .page-card, .brief-output { background: rgba(15,23,42,.64); border-color: rgba(226,232,240,.22); box-shadow: 0 18px 50px rgba(2,6,23,.26), inset 0 1px rgba(255,255,255,.14); backdrop-filter: blur(22px) saturate(135%); -webkit-backdrop-filter: blur(22px) saturate(135%); }
+        @keyframes liquid-drift { 0% { transform: translate3d(-2%, -1%, 0) scale(1); } 50% { transform: translate3d(2%, 2%, 0) scale(1.06); } 100% { transform: translate3d(-1%, 3%, 0) scale(1.02); } }
+        @media (prefers-reduced-motion: reduce) { body::before, body::after { animation: none; } }
+        :root[data-theme="light"] body::before, :root[data-theme="light"] body::after { background: radial-gradient(circle at 20% 20%, rgba(14,116,144,.18), transparent 32%), radial-gradient(circle at 78% 70%, rgba(79,70,229,.14), transparent 30%), linear-gradient(125deg, #dbeafe, #f8fafc 48%, #e0f2fe); }
+        :root[data-theme="light"] .sidebar, :root[data-theme="light"] .page-card, :root[data-theme="light"] .brief-output { background: rgba(255,255,255,.72); border-color: rgba(15,23,42,.2); box-shadow: 0 18px 50px rgba(15,23,42,.12), inset 0 1px rgba(255,255,255,.85); }
+    </style>
+    <script src="/static/theme.js"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <span class="brand-mark">⚖️</span>
+                    <span class="brand-text">VeritasAI</span>
+                </div>
+                <button class="sidebar-toggle" aria-label="Toggle Sidebar">☰</button>
+            </div>
+            <div class="theme-controls">
+                <button class="theme-toggle" type="button" aria-label="Toggle light and dark theme" aria-pressed="false">☾ Dark</button>
+                <input class="color-picker" type="color" aria-label="Choose accent color" value="#38bdf8">
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="sidebar-link"><span>📊</span><span class="nav-label">Dashboard</span></a>
+                <a href="/assistant" class="sidebar-link"><span>🤖</span><span class="nav-label">Assistant</span></a>
+                <a href="/witnesses" class="sidebar-link"><span>👥</span><span class="nav-label">Witnesses</span></a>
+                <a href="/post" class="sidebar-link active"><span>📄</span><span class="nav-label">Post</span></a>
+                <a href="/" class="sidebar-link"><span>🏠</span><span class="nav-label">Landing</span></a>
+            </nav>
+        </aside>
+
+        <main class="content-shell">
+            <div class="page-card">
+                <div class="page-header">
+                    <h1>AI Post-Deposition Brief</h1>
+                    <p>Synthesize session telemetry and witness statements into a concise trial memorandum.</p>
+                    <button class="btn-action" onclick="generateBrief()">Generate AI Brief</button>
+                </div>
+
+                <div id="briefOutput" class="brief-output">
+                    <em>No brief generated yet for this session.</em>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/sidebar.js"></script>
+    <script>
+        function generateBrief() {
+            const output = document.getElementById('briefOutput');
+            output.textContent = 'Compiling session telemetry and generating brief via Gemini AI...';
+
+            fetch('/api/generate-brief', { method: 'POST' })
+            .then(async (res) => {
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || data.message || 'Failed to generate brief.');
+                output.textContent = data.brief || 'Failed to generate brief.';
+            })
+            .catch(err => {
+                output.textContent = err.message || 'Error communicating with backend server.';
+            });
+        }
+    </script>
+</body>
+</html>
