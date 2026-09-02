@@ -3,367 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deposition Analytics Studio — VeritasAI</title>
-    
-    <!-- External Dependencies: Chart.js & MediaPipe -->
+    <title>VeritasAI — Precision Deposition Analytics Studio</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- External Libraries: Chart.js & MediaPipe -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
 
     <style>
-        /* Default Dark Theme Variables */
         :root {
-            --bg-dark: #0b0f19;
-            --panel-bg: rgba(22, 30, 46, 0.85);
+            --bg-dark: #07090e;
+            --panel-bg: rgba(15, 22, 35, 0.75);
             --panel-border: rgba(255, 255, 255, 0.08);
-            --header-bg: rgba(15, 23, 42, 0.9);
+            --header-bg: rgba(10, 15, 26, 0.85);
             --accent-blue: #38bdf8;
             --text-main: #f8fafc;
             --text-sub: #94a3b8;
-            --card-bg: rgba(0, 0, 0, 0.25);
+            --card-bg: rgba(255, 255, 255, 0.03);
             --input-bg: rgba(0, 0, 0, 0.4);
             --alert-red: #ef4444;
             --warning-amber: #f59e0b;
             --success-green: #10b981;
-            --chart-grid: rgba(255, 255, 255, 0.1);
+            --font-sans: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
-        /* Light Theme Overrides */
         [data-theme="light"] {
-            --bg-dark: #f1f5f9;
+            --bg-dark: #f8fafc;
             --panel-bg: rgba(255, 255, 255, 0.9);
-            --panel-border: rgba(0, 0, 0, 0.1);
+            --panel-border: rgba(0, 0, 0, 0.08);
             --header-bg: rgba(255, 255, 255, 0.95);
             --accent-blue: #0284c7;
             --text-main: #0f172a;
-            --text-sub: #475569;
-            --card-bg: rgba(241, 245, 249, 0.8);
+            --text-sub: #64748b;
+            --card-bg: rgba(241, 245, 249, 0.7);
             --input-bg: #ffffff;
             --alert-red: #dc2626;
             --warning-amber: #d97706;
             --success-green: #059669;
-            --chart-grid: rgba(0, 0, 0, 0.08);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: var(--font-sans);
             background-color: var(--bg-dark);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
         }
 
         /* Navigation Header */
         .top-bar {
             background: var(--header-bg);
             border-bottom: 1px solid var(--panel-border);
-            padding: 16px 24px;
+            padding: 14px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(16px);
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
-        .top-bar h1 {
-            font-size: 1.25rem;
+        .brand-logo { display: flex; align-items: center; gap: 12px; }
+        .brand-logo h1 { font-size: 1.15rem; font-weight: 700; color: var(--text-main); }
+        .brand-badge {
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent-blue);
+            font-size: 0.65rem;
             font-weight: 700;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.25);
         }
 
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .nav-actions { display: flex; align-items: center; gap: 10px; }
 
-        .btn-theme-toggle {
-            background-color: var(--card-bg);
+        .btn-icon {
+            background: var(--card-bg);
             color: var(--text-main);
             padding: 8px 14px;
             border-radius: 8px;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             font-weight: 600;
             border: 1px solid var(--panel-border);
             cursor: pointer;
             transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
-        .btn-theme-toggle:hover {
-            border-color: var(--accent-blue);
-            color: var(--accent-blue);
-        }
+        .btn-icon:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
 
-        .btn-back {
-            background-color: var(--card-bg);
-            color: var(--text-sub);
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            border: 1px solid var(--panel-border);
-            transition: all 0.2s ease;
-        }
-
-        .btn-back:hover {
-            background-color: rgba(56, 189, 248, 0.15);
-            color: var(--accent-blue);
-            border-color: var(--accent-blue);
-        }
-
-        /* Main Workspace Grid */
+        /* Dashboard Workspace */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 380px 1fr 340px;
             gap: 20px;
-            padding: 20px;
+            padding: 24px;
             flex-grow: 1;
         }
 
-        @media (max-width: 1200px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
         .panel {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
-            border-radius: 12px;
-            padding: 18px;
+            border-radius: 16px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 16px;
             backdrop-filter: blur(12px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
+        .panel-header { display: flex; justify-content: space-between; align-items: center; }
         .panel-title {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: var(--accent-blue);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            letter-spacing: 0.08em;
         }
 
-        /* Video Feed Container & Controls */
+        /* Camera Feed */
         .video-container {
             position: relative;
             width: 100%;
             aspect-ratio: 4/3;
             background: #000;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
             border: 1px solid var(--panel-border);
         }
 
-        video, canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        video, canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        .camera-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-        .camera-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        /* Metric Cards */
-        .metric-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
+        /* Metrics & Bars */
+        .metric-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
         .metric-card {
             background: var(--card-bg);
-            padding: 12px;
-            border-radius: 8px;
+            padding: 12px 14px;
+            border-radius: 10px;
             border: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        .metric-card label {
-            font-size: 0.75rem;
-            color: var(--text-sub);
-            display: block;
-            margin-bottom: 4px;
-        }
+        .metric-card label { font-size: 0.72rem; color: var(--text-sub); font-weight: 600; text-transform: uppercase; }
+        .metric-card .val { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 600; }
 
-        .metric-card .val {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
+        .progress-bar-bg { width: 100%; height: 6px; background: var(--panel-border); border-radius: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; width: 0%; background: var(--accent-blue); transition: width 0.25s ease; }
 
-        /* Voice Stress Bar */
-        .stress-bar-bg {
-            width: 100%;
-            height: 8px;
-            background: var(--panel-border);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 6px;
-        }
-
-        .stress-bar-fill {
-            height: 100%;
-            width: 0%;
-            background: var(--success-green);
-            transition: width 0.15s ease, background-color 0.3s ease;
-        }
-
-        /* Controls */
         .btn-action {
-            background: rgba(56, 189, 248, 0.15);
+            background: rgba(56, 189, 248, 0.12);
             color: var(--accent-blue);
             border: 1px solid rgba(56, 189, 248, 0.3);
-            padding: 10px;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border-radius: 8px;
             font-weight: 600;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-action:hover {
-            background: var(--accent-blue);
-            color: #ffffff;
         }
 
         .btn-danger {
-            background: rgba(239, 68, 68, 0.15);
+            background: rgba(239, 68, 68, 0.12);
             color: var(--alert-red);
             border: 1px solid rgba(239, 68, 68, 0.3);
-            padding: 10px;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border-radius: 8px;
             font-weight: 600;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
-        .btn-danger:hover {
-            background: var(--alert-red);
-            color: #ffffff;
-        }
-
-        /* Transcript & Historical Log Containers */
-        .transcript-box, .history-box {
+        /* Timeline & Transcript */
+        .timeline-box {
             background: var(--card-bg);
             border: 1px solid var(--panel-border);
-            border-radius: 8px;
-            padding: 12px;
-            height: 160px;
+            border-radius: 10px;
+            padding: 10px;
+            height: 180px;
             overflow-y: auto;
-            font-size: 0.85rem;
-            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .timeline-card {
+            background: rgba(239, 68, 68, 0.08);
+            border-left: 3px solid var(--alert-red);
+            padding: 8px 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+        }
+
+        .timeline-details { display: flex; flex-direction: column; gap: 2px; }
+        .timeline-details strong { color: var(--text-main); font-size: 0.8rem; }
+        .timeline-details span { color: var(--text-sub); font-size: 0.72rem; }
+
+        .transcript-box {
+            background: var(--card-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 10px;
+            height: 120px;
+            overflow-y: auto;
+            font-size: 0.82rem;
             color: var(--text-sub);
         }
 
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid var(--panel-border);
-            font-size: 0.8rem;
-        }
-
-        .transcript-entry {
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--panel-border);
-        }
-
-        .transcript-entry strong {
-            color: var(--accent-blue);
-        }
-
         /* Chat Panel */
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            height: 100%;
-        }
-
+        .chat-container { display: flex; flex-direction: column; gap: 12px; height: 100%; }
         .chat-logs {
             flex-grow: 1;
             background: var(--card-bg);
             border: 1px solid var(--panel-border);
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 12px;
             min-height: 250px;
-            max-height: 480px;
+            max-height: 460px;
             overflow-y: auto;
             font-size: 0.85rem;
-        }
-
-        .chat-input-row {
             display: flex;
-            gap: 8px;
+            flex-direction: column;
+            gap: 10px;
         }
 
+        .chat-input-row { display: flex; gap: 8px; }
         .chat-input-row input {
             flex-grow: 1;
             background: var(--input-bg);
             border: 1px solid var(--panel-border);
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 10px;
             color: var(--text-main);
-            font-size: 0.875rem;
+            outline: none;
         }
 
         .chat-input-row button {
             background: var(--accent-blue);
-            color: #ffffff;
+            color: #000;
             border: none;
             padding: 10px 16px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: 700;
             cursor: pointer;
+        }
+
+        /* Settings Drawer Overlay */
+        .settings-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px);
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .settings-overlay.active { opacity: 1; pointer-events: auto; }
+        .settings-drawer {
+            position: fixed; top: 0; right: -380px; width: 380px; height: 100vh;
+            background: var(--header-bg); border-left: 1px solid var(--panel-border);
+            z-index: 201; padding: 24px; display: flex; flex-direction: column; gap: 20px;
+            transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .settings-overlay.active .settings-drawer { right: 0; }
+        .setting-group { display: flex; flex-direction: column; gap: 8px; }
+        .setting-group label { font-size: 0.8rem; color: var(--text-sub); font-weight: 600; display: flex; justify-content: space-between; }
+        .setting-group input[type="range"] { width: 100%; accent-color: var(--accent-blue); }
+
+        /* ------------------------------------------------------------------
+           ⚡ ULTRA-FAST PRINT & PDF EXPORT STYLESHEET
+           ------------------------------------------------------------------ */
+        @media print {
+            video, #output_canvas, .camera-controls, .top-bar, .settings-overlay, .chat-input-row, button {
+                display: none !important;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+            }
+
+            .dashboard-grid {
+                display: block !important;
+                padding: 0 !important;
+            }
+
+            .panel {
+                background: #ffffff !important;
+                border: 1px solid #ccc !important;
+                box-shadow: none !important;
+                margin-bottom: 16px !important;
+                page-break-inside: avoid;
+            }
+
+            .timeline-box, .transcript-box, .chat-logs {
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+                border: 1px solid #ddd !important;
+            }
+
+            canvas#telemetryChart {
+                max-height: 180px !important;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Header Navigation -->
+    <!-- Settings Overlay -->
+    <div class="settings-overlay" id="settingsOverlay" onclick="toggleSettings()">
+        <div class="settings-drawer" onclick="event.stopPropagation()">
+            <div class="panel-header">
+                <span class="panel-title">⚙️ Analytics Settings</span>
+                <button class="btn-icon" onclick="toggleSettings()">✕</button>
+            </div>
+            <div class="setting-group">
+                <label>Sensitivity Threshold <span id="sensVal" style="color: var(--accent-blue);">60%</span></label>
+                <input type="range" id="sensRange" min="30" max="90" value="60" oninput="document.getElementById('sensVal').innerText = this.value + '%'">
+            </div>
+            <button class="btn-action" style="margin-top: auto;" onclick="toggleSettings()">Save Preferences</button>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
     <header class="top-bar">
-        <h1>⚖️ VeritasAI Studio</h1>
+        <div class="brand-logo">
+            <h1>⚖️ VeritasAI Studio</h1>
+            <span class="brand-badge">Pro v2.5</span>
+        </div>
         <div class="nav-actions">
-            <!-- Theme Toggle Button -->
-            <button class="btn-theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">
-                <span id="themeIcon">🌙</span> <span id="themeLabel">Dark</span>
-            </button>
-            <a href="/" class="btn-back">← Back to Landing Page</a>
+            <button class="btn-icon" onclick="calibrateBaseline()">🎯 Calibrate</button>
+            <button class="btn-icon" onclick="exportPDFReport()">📄 Export PDF</button>
+            <button class="btn-icon" onclick="toggleSettings()">⚙️ Settings</button>
+            <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
         </div>
     </header>
 
-    <!-- Main Workspace -->
+    <!-- Main Studio Dashboard -->
     <main class="dashboard-grid">
         
-        <!-- Panel 1: Computer Vision & Controls -->
+        <!-- Column 1: Video & DSP Inputs -->
         <section class="panel">
-            <div class="panel-title">
-                <span>📹 Computer Vision</span>
-                <span id="vision-status-tag" style="color: var(--success-green); font-size: 0.75rem;">● LIVE</span>
+            <div class="panel-header">
+                <span class="panel-title">📹 Computer Vision</span>
+                <span id="vision-status" style="color: var(--success-green); font-size: 0.72rem; font-weight: 700;">● READY</span>
             </div>
 
             <div class="video-container">
@@ -371,83 +369,90 @@
                 <canvas id="output_canvas"></canvas>
             </div>
 
-            <!-- Start / Stop Camera Controls -->
             <div class="camera-controls">
-                <button class="btn-action" onclick="startCamera()">▶ Start Camera</button>
-                <button class="btn-danger" onclick="stopCamera()">⏹ Stop Camera</button>
+                <button class="btn-action" onclick="startCamera()">▶ Start Cam</button>
+                <button class="btn-danger" onclick="stopCamera()">⏹ Stop Cam</button>
             </div>
 
             <div class="metric-row">
                 <div class="metric-card">
-                    <label>Blink Rate / EAR</label>
+                    <label>Blink EAR Metric</label>
                     <div class="val" id="ear-val">0.28</div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="ear-bar" style="width: 28%;"></div></div>
                 </div>
                 <div class="metric-card">
-                    <label>Posture Score</label>
-                    <div class="val" id="posture-val">95%</div>
+                    <label>Posture Slouch</label>
+                    <div class="val" id="posture-val">0%</div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="posture-bar" style="width: 0%;"></div></div>
                 </div>
             </div>
 
-            <div class="panel-title" style="margin-top: 6px;">🎙️ Audio DSP & Voice Stress</div>
+            <div class="panel-title" style="margin-top: 4px;">🎙️ Audio DSP</div>
             <div class="metric-row">
                 <div class="metric-card" style="grid-column: span 2;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label>Vocal Stress Score</label>
-                        <span id="stress-status" style="font-size: 0.75rem; font-weight: 700; color: var(--success-green);">NORMAL</span>
-                    </div>
+                    <label>Vocal Stress Score</label>
                     <div class="val" id="stress-val">0%</div>
-                    <div class="stress-bar-bg">
-                        <div class="stress-bar-fill" id="stress-bar"></div>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <label>Pitch (Hz)</label>
-                    <div class="val" id="pitch-val">-- Hz</div>
-                </div>
-                <div class="metric-card">
-                    <label>Volume Level</label>
-                    <div class="val" id="vol-val">0 dB</div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="stress-bar"></div></div>
                 </div>
             </div>
 
             <button id="startAudioBtn" class="btn-action" onclick="initVoiceStressAnalysis()">
-                🎙️ Enable Audio & Voice Stress DSP
+                🎙️ Connect Audio DSP & Speech
             </button>
         </section>
 
-        <!-- Panel 2: Live Analytics & Historical Witness Log -->
+        <!-- Column 2: Behavioral Correlation Engine & Anomaly Timeline -->
         <section class="panel">
-            <div class="panel-title">📊 Real-Time Telemetry Stream</div>
-            <div style="height: 200px;">
+            <div class="panel-header">
+                <span class="panel-title">⚡ Correlation Engine</span>
+                <span style="font-size: 0.72rem; color: var(--text-sub); font-family: var(--font-mono);">Live Vector</span>
+            </div>
+
+            <!-- Behavioral Correlation Bar -->
+            <div class="metric-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label>Compound Anomaly Probability</label>
+                    <span id="correlation-tag" style="font-size: 0.7rem; font-weight: 700; color: var(--success-green);">LOW RISK</span>
+                </div>
+                <div class="val" id="correlation-score">0%</div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="correlation-bar" style="width: 0%; background-color: var(--success-green);"></div>
+                </div>
+            </div>
+
+            <div style="height: 150px;">
                 <canvas id="telemetryChart"></canvas>
             </div>
 
-            <!-- Historical Witness Telemetry Feature -->
-            <div class="panel-title" style="margin-top: 4px;">📜 Historical Witness Telemetry Logs</div>
-            <div class="history-box" id="historyBox">
-                <div class="history-item">
-                    <span>Baseline Calibrated</span>
-                    <span style="color: var(--text-sub);">12:00:00 PM</span>
+            <div class="panel-title" style="margin-top: 4px;">🚩 Suspicious Moment Timeline</div>
+            <div class="timeline-box" id="anomalyTimeline">
+                <div class="timeline-card" style="border-left-color: var(--warning-amber);">
+                    <div class="timeline-details">
+                        <strong>Engine Initialized</strong>
+                        <span>Monitoring multi-modal baseline synchronization...</span>
+                    </div>
+                    <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-sub);">SYSTEM</span>
                 </div>
             </div>
 
-            <div class="panel-title" style="margin-top: 4px;">🎙️ Live Speech Transcript</div>
+            <div class="panel-title" style="margin-top: 2px;">🎙️ Speech Transcript</div>
             <div class="transcript-box" id="transcriptBox">
-                <div class="transcript-entry">
-                    <strong>[System]</strong> Enable Audio DSP to begin live transcription...
-                </div>
+                <div style="font-size: 0.78rem; color: var(--text-sub);">[System] Connect Microphone to start live transcript capture.</div>
             </div>
         </section>
 
-        <!-- Panel 3: Groq Chatbot Assistant -->
+        <!-- Column 3: AI Co-Pilot Chat -->
         <section class="panel">
-            <div class="panel-title">💬 Groq Deposition Chatbot</div>
+            <div class="panel-header">
+                <span class="panel-title">💬 Groq Co-Pilot</span>
+                <span style="color: var(--accent-blue); font-size: 0.7rem; font-weight: 700;">llama3-70b</span>
+            </div>
             <div class="chat-container">
                 <div class="chat-logs" id="chatLogs">
-                    <p style="color: var(--text-sub);">Chatbot initialized. Query Groq AI for instant analysis on stress spikes or witness statements.</p>
+                    <p style="color: var(--text-sub);">Co-Pilot ready. Ask questions regarding timestamped anomalies or stress vectors.</p>
                 </div>
                 <div class="chat-input-row">
-                    <input type="text" id="chatInput" placeholder="Ask Chatbot..." onkeydown="if(event.key==='Enter') sendGroqQuery()"/>
+                    <input type="text" id="chatInput" placeholder="Ask AI Assistant..." onkeydown="if(event.key==='Enter') sendGroqQuery()"/>
                     <button onclick="sendGroqQuery()">Send</button>
                 </div>
             </div>
@@ -455,129 +460,157 @@
 
     </main>
 
-    <!-- Script Implementation -->
     <script>
         // ------------------------------------------------------------------
-        // 0. Dark / Light Theme Controller
+        // 1. App State & Navigation Controls
         // ------------------------------------------------------------------
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeUI(savedTheme);
-        }
-
+        function toggleSettings() { document.getElementById('settingsOverlay').classList.toggle('active'); }
         function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeUI(newTheme);
-            updateChartColors(newTheme);
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
         }
-
-        function updateThemeUI(theme) {
-            const icon = document.getElementById('themeIcon');
-            const label = document.getElementById('themeLabel');
-            if (theme === 'light') {
-                icon.innerText = '☀️';
-                label.innerText = 'Light';
-            } else {
-                icon.innerText = '🌙';
-                label.innerText = 'Dark';
-            }
-        }
-
-        initTheme();
 
         // ------------------------------------------------------------------
-        // 1. Chart.js Setup
+        // 2. High-Speed PDF Exporter & Calibration
+        // ------------------------------------------------------------------
+        function exportPDFReport() {
+            const statusLabel = document.getElementById('vision-status');
+            const originalText = statusLabel.innerText;
+            statusLabel.innerText = '○ EXPORTING PDF';
+
+            // Asynchronous print trigger prevents UI freezing
+            setTimeout(() => {
+                window.print();
+                statusLabel.innerText = originalText;
+            }, 50);
+        }
+
+        let baselineEAR = 0.28;
+        let baselinePosture = 0;
+
+        function calibrateBaseline() {
+            alert("Starting 3-second baseline calibration. Please sit naturally and face the camera.");
+            setTimeout(() => {
+                baselineEAR = currentEAR;
+                baselinePosture = currentSlouch;
+                alert(`✅ Baseline calibrated! Rest EAR set to ${baselineEAR}.`);
+            }, 3000);
+        }
+
+        // ------------------------------------------------------------------
+        // 3. Behavioral Correlation Engine
+        // ------------------------------------------------------------------
+        let currentEAR = 0.28;
+        let currentSlouch = 0;
+        let currentVoiceStress = 0;
+        let lastFlaggedTime = 0;
+
+        function evaluateBehavioralCorrelation() {
+            const voiceFactor = Math.min(100, currentVoiceStress) / 100;
+            const postureFactor = Math.min(100, currentSlouch) / 100;
+            const earFactor = (currentEAR < 0.15 || currentEAR > 0.38) ? 0.8 : 0.1;
+
+            const correlationScore = Math.round(
+                (voiceFactor * 0.5 + postureFactor * 0.3 + earFactor * 0.2) * 100
+            );
+
+            document.getElementById('correlation-score').innerText = `${correlationScore}%`;
+            const corrBar = document.getElementById('correlation-bar');
+            const corrTag = document.getElementById('correlation-tag');
+            corrBar.style.width = `${correlationScore}%`;
+
+            const sensThreshold = parseInt(document.getElementById('sensRange').value);
+
+            if (correlationScore >= sensThreshold) {
+                corrBar.style.backgroundColor = 'var(--alert-red)';
+                corrTag.innerText = 'HIGH ANOMALY';
+                corrTag.style.color = 'var(--alert-red)';
+
+                const now = Date.now();
+                if (now - lastFlaggedTime > 4000) {
+                    lastFlaggedTime = now;
+                    triggerAnomalyFlag(correlationScore, "COMPOUND_STRESS", `Vocal Stress (${currentVoiceStress}%) + Slouching (${currentSlouch}%)`);
+                }
+            } else if (correlationScore >= 35) {
+                corrBar.style.backgroundColor = 'var(--warning-amber)';
+                corrTag.innerText = 'ELEVATED';
+                corrTag.style.color = 'var(--warning-amber)';
+            } else {
+                corrBar.style.backgroundColor = 'var(--success-green)';
+                corrTag.innerText = 'LOW RISK';
+                corrTag.style.color = 'var(--success-green)';
+            }
+
+            updateChartData(correlationScore);
+        }
+
+        function triggerAnomalyFlag(score, type, details) {
+            const timeStr = new Date().toLocaleTimeString();
+            const timeline = document.getElementById('anomalyTimeline');
+
+            const card = document.createElement('div');
+            card.className = 'timeline-card';
+            card.innerHTML = `
+                <div class="timeline-details">
+                    <strong>⚠️ ${type} (${score}%)</strong>
+                    <span>${details}</span>
+                </div>
+                <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--alert-red);">${timeStr}</span>
+            `;
+            timeline.prepend(card);
+
+            fetch('/api/anomalies/flag', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ timestamp: timeStr, score: score, cluster_type: type, details: details })
+            }).catch(e => console.warn("Backend logging skipped:", e));
+        }
+
+        // ------------------------------------------------------------------
+        // 4. Chart.js Setup
         // ------------------------------------------------------------------
         const ctx = document.getElementById('telemetryChart').getContext('2d');
         const telemetryChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: Array(20).fill(''),
-                datasets: [
-                    {
-                        label: 'Voice Stress (%)',
-                        data: Array(20).fill(0),
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: true
-                    },
-                    {
-                        label: 'Facial Stress / EAR Anomalies (%)',
-                        data: Array(20).fill(15),
-                        borderColor: '#0284c7',
-                        borderWidth: 1.5,
-                        tension: 0.3,
-                        fill: false
-                    }
-                ]
+                datasets: [{
+                    label: 'Correlation Vector (%)',
+                    data: Array(20).fill(0),
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    x: {
-                        display: false,
-                        grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid') }
-                    },
-                    y: {
-                        min: 0,
-                        max: 100,
-                        ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-sub') },
-                        grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid') }
-                    }
+                    x: { display: false },
+                    y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
                 },
-                plugins: {
-                    legend: { labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-main'), font: { size: 11 } } }
-                }
+                plugins: { legend: { display: false } }
             }
         });
 
-        function updateChartColors(theme) {
-            const textColor = theme === 'light' ? '#475569' : '#cbd5e1';
-            const gridColor = theme === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)';
-
-            telemetryChart.options.scales.y.ticks.color = textColor;
-            telemetryChart.options.scales.y.grid.color = gridColor;
-            telemetryChart.options.plugins.legend.labels.color = textColor;
-            telemetryChart.update();
-        }
-
-        function updateChartData(voiceStress, facialStress) {
+        function updateChartData(score) {
             telemetryChart.data.datasets[0].data.shift();
-            telemetryChart.data.datasets[0].data.push(voiceStress);
-            telemetryChart.data.datasets[1].data.shift();
-            telemetryChart.data.datasets[1].data.push(facialStress);
+            telemetryChart.data.datasets[0].data.push(score);
             telemetryChart.update('none');
         }
 
         // ------------------------------------------------------------------
-        // 2. Camera Controls & MediaPipe Computer Vision
+        // 5. MediaPipe FaceMesh Engine
         // ------------------------------------------------------------------
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
-
         let camera = null;
-        let currentEAR = 0.28;
-        let currentPostureScore = 95;
 
-        const faceMesh = new FaceMesh({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-        });
-
-        faceMesh.setOptions({
-            maxNumFaces: 1,
-            refineLandmarks: true,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-        });
+        const faceMesh = new FaceMesh({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}` });
+        faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true });
 
         faceMesh.onResults((results) => {
             canvasCtx.save();
@@ -587,58 +620,51 @@
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                 const landmarks = results.multiFaceLandmarks[0];
 
-                canvasCtx.fillStyle = '#38bdf8';
-                for (let i = 0; i < landmarks.length; i += 10) {
-                    const x = landmarks[i].x * canvasElement.width;
-                    const y = landmarks[i].y * canvasElement.height;
-                    canvasCtx.beginPath();
-                    canvasCtx.arc(x, y, 1.5, 0, 2 * Math.PI);
-                    canvasCtx.fill();
-                }
-
                 const leftEyeTop = landmarks[159].y;
                 const leftEyeBottom = landmarks[145].y;
                 currentEAR = (Math.abs(leftEyeBottom - leftEyeTop) * 10).toFixed(2);
                 document.getElementById('ear-val').innerText = currentEAR;
+                document.getElementById('ear-bar').style.width = `${Math.min(100, currentEAR * 250)}%`;
+
+                const noseY = landmarks[1].y;
+                currentSlouch = Math.min(100, Math.max(0, Math.round((noseY - 0.4) * 200)));
+                document.getElementById('posture-val').innerText = `${currentSlouch}%`;
+                document.getElementById('posture-bar').style.width = `${currentSlouch}%`;
+
+                evaluateBehavioralCorrelation();
             }
             canvasCtx.restore();
         });
 
-        function startCamera() {
-            if (!camera) {
-                camera = new Camera(videoElement, {
-                    onFrame: async () => {
-                        await faceMesh.send({ image: videoElement });
-                    },
-                    width: 640,
-                    height: 480
-                });
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = stream;
+                await videoElement.play();
+
+                if (!camera) {
+                    camera = new Camera(videoElement, {
+                        onFrame: async () => { await faceMesh.send({ image: videoElement }); },
+                        width: 640, height: 480
+                    });
+                }
+                camera.start();
+                document.getElementById('vision-status').innerText = '● LIVE';
+            } catch (err) {
+                alert("Camera access failed: " + err.message);
             }
-            camera.start();
-            document.getElementById('vision-status-tag').innerText = '● LIVE';
-            document.getElementById('vision-status-tag').style.color = 'var(--success-green)';
         }
 
         function stopCamera() {
-            if (camera) {
-                camera.stop();
-            }
-            if (videoElement.srcObject) {
-                videoElement.srcObject.getTracks().forEach(track => track.stop());
-            }
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            document.getElementById('vision-status-tag').innerText = '○ PAUSED';
-            document.getElementById('vision-status-tag').style.color = 'var(--alert-red)';
+            if (camera) camera.stop();
+            if (videoElement.srcObject) videoElement.srcObject.getTracks().forEach(t => t.stop());
+            document.getElementById('vision-status').innerText = '○ PAUSED';
         }
 
-        startCamera();
-
         // ------------------------------------------------------------------
-        // 3. Web Audio API Voice Stress & Pitch DSP
+        // 6. Audio DSP & Speech Analysis Engine
         // ------------------------------------------------------------------
-        let audioContext, analyser, microphone, dataArray;
-        let currentVoiceStress = 0;
-        let currentPitch = 0;
+        let audioContext, analyser, dataArray;
 
         async function initVoiceStressAnalysis() {
             try {
@@ -646,19 +672,16 @@
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 2048;
-                
-                microphone = audioContext.createMediaStreamSource(stream);
-                microphone.connect(analyser);
 
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
                 dataArray = new Float32Array(analyser.fftSize);
-                const btn = document.getElementById('startAudioBtn');
-                btn.innerText = "✅ Acoustic DSP Active";
-                btn.style.opacity = "0.6";
 
+                document.getElementById('startAudioBtn').innerText = "✅ Audio DSP Connected";
                 analyzeAudioLoop();
                 startSpeechRecognition();
             } catch (err) {
-                alert("Microphone access is required to compute voice stress telemetry.");
+                alert("Microphone permission required for vocal stress analysis.");
             }
         }
 
@@ -669,192 +692,79 @@
             analyser.getFloatTimeDomainData(dataArray);
 
             let sumSquares = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-                sumSquares += dataArray[i] * dataArray[i];
-            }
+            for (let i = 0; i < dataArray.length; i++) sumSquares += dataArray[i] * dataArray[i];
             const rms = Math.sqrt(sumSquares / dataArray.length);
             const db = Math.max(0, Math.round(20 * Math.log10(rms + 1e-6) + 100));
 
-            const pitch = autoCorrelate(dataArray, audioContext.sampleRate);
-            if (pitch !== -1) {
-                currentPitch = Math.round(pitch);
-            }
-
-            let stressScore = 0;
-            if (db > 35) {
-                const pitchVariance = Math.abs(currentPitch - 180);
-                const dbStress = Math.min(50, (db - 35) * 1.3);
-                const pitchStress = Math.min(50, pitchVariance * 0.25);
-                stressScore = Math.min(100, Math.round(dbStress + pitchStress));
-            }
-            currentVoiceStress = stressScore;
-
-            document.getElementById('vol-val').innerText = `${db} dB`;
-            document.getElementById('pitch-val').innerText = currentPitch > 0 ? `${currentPitch} Hz` : '-- Hz';
+            currentVoiceStress = db > 35 ? Math.min(100, Math.round((db - 35) * 2.2)) : 0;
             document.getElementById('stress-val').innerText = `${currentVoiceStress}%`;
-            
-            const stressBar = document.getElementById('stress-bar');
-            const stressStatus = document.getElementById('stress-status');
-            stressBar.style.width = `${currentVoiceStress}%`;
+            document.getElementById('stress-bar').style.width = `${currentVoiceStress}%`;
 
-            if (currentVoiceStress > 65) {
-                stressBar.style.backgroundColor = 'var(--alert-red)';
-                stressStatus.innerText = 'HIGH STRESS';
-                stressStatus.style.color = 'var(--alert-red)';
-                logHistoricalEvent(`High Voice Stress Peak detected (${currentVoiceStress}%)`);
-            } else if (currentVoiceStress > 35) {
-                stressBar.style.backgroundColor = 'var(--warning-amber)';
-                stressStatus.innerText = 'ELEVATED';
-                stressStatus.style.color = 'var(--warning-amber)';
-            } else {
-                stressBar.style.backgroundColor = 'var(--success-green)';
-                stressStatus.innerText = 'NORMAL';
-                stressStatus.style.color = 'var(--success-green)';
-            }
-
-            const facialStressPercent = Math.min(100, Math.round(currentEAR * 100));
-            updateChartData(currentVoiceStress, facialStressPercent);
+            evaluateBehavioralCorrelation();
         }
 
-        function autoCorrelate(buf, sampleRate) {
-            let SIZE = buf.length;
-            let rms = 0;
-            for (let i = 0; i < SIZE; i++) {
-                let val = buf[i];
-                rms += val * val;
-            }
-            rms = Math.sqrt(rms / SIZE);
-            if (rms < 0.01) return -1;
-
-            let r1 = 0, r2 = SIZE - 1, thres = 0.2;
-            for (let i = 0; i < SIZE / 2; i++) {
-                if (Math.abs(buf[i]) < thres) { r1 = i; break; }
-            }
-            for (let i = 1; i < SIZE / 2; i++) {
-                if (Math.abs(buf[SIZE - i]) < thres) { r2 = SIZE - i; break; }
-            }
-
-            buf = buf.slice(r1, r2);
-            SIZE = buf.length;
-
-            let c = new Array(SIZE).fill(0);
-            for (let i = 0; i < SIZE; i++) {
-                for (let j = 0; j < SIZE - i; j++) {
-                    c[i] = c[i] + buf[j] * buf[j + i];
-                }
-            }
-
-            let d = 0;
-            while (c[d] > c[d + 1]) d++;
-            let maxval = -1, maxpos = -1;
-            for (let i = d; i < SIZE; i++) {
-                if (c[i] > maxval) {
-                    maxval = c[i];
-                    maxpos = i;
-                }
-            }
-            let T0 = maxpos;
-            return sampleRate / T0;
-        }
-
-        // ------------------------------------------------------------------
-        // 4. Historical Witness Telemetry Logger
-        // ------------------------------------------------------------------
-        let lastLoggedTime = 0;
-        function logHistoricalEvent(description) {
-            const now = Date.now();
-            if (now - lastLoggedTime < 5000) return;
-            lastLoggedTime = now;
-
-            const historyBox = document.getElementById('historyBox');
-            const timeStr = new Date().toLocaleTimeString();
-
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            item.innerHTML = `
-                <span style="color: var(--alert-red); font-weight: 600;">⚠️ ${description}</span>
-                <span style="color: var(--text-sub);">${timeStr}</span>
-            `;
-            historyBox.prepend(item);
-        }
-
-        // ------------------------------------------------------------------
-        // 5. Speech Recognition & Telemetry Sync
-        // ------------------------------------------------------------------
         function startSpeechRecognition() {
-            const transcriptBox = document.getElementById('transcriptBox');
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                const recognition = new SpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = true;
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return;
 
-                recognition.onresult = (event) => {
-                    let currentText = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        if (event.results[i].isFinal) {
-                            currentText += event.results[i][0].transcript;
-                        }
-                    }
-                    if (currentText) {
-                        const entry = document.createElement('div');
-                        entry.className = 'transcript-entry';
-                        entry.innerHTML = `<strong>[Deponent]</strong> ${currentText} <span style="font-size: 0.7rem; color: var(--text-sub);">(Voice Stress: ${currentVoiceStress}%)</span>`;
-                        transcriptBox.appendChild(entry);
-                        transcriptBox.scrollTop = transcriptBox.scrollHeight;
-                    }
-                };
-                recognition.start();
-            }
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onresult = (e) => {
+                let currentText = '';
+                for (let i = e.resultIndex; i < e.results.length; ++i) {
+                    if (e.results[i].isFinal) currentText += e.results[i][0].transcript;
+                }
+                if (currentText) {
+                    const entry = document.createElement('div');
+                    entry.style.marginBottom = "6px";
+                    entry.innerHTML = `<strong>[Deponent]</strong> ${currentText}`;
+                    const box = document.getElementById('transcriptBox');
+                    box.appendChild(entry);
+                    box.scrollTop = box.scrollHeight;
+                }
+            };
+            try { recognition.start(); } catch(err) {}
         }
 
-        setInterval(async () => {
-            try {
-                await fetch('/api/telemetry', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ear: parseFloat(currentEAR),
-                        posture_score: currentPostureScore,
-                        vocal_intensity: 65,
-                        voice_stress: currentVoiceStress,
-                        pitch_hz: currentPitch
-                    })
-                });
-            } catch (err) {}
-        }, 3000);
-
         // ------------------------------------------------------------------
-        // 6. Chatbot Assistant Interaction
+        // 7. Groq Chatbot Assistant
         // ------------------------------------------------------------------
         async function sendGroqQuery() {
             const input = document.getElementById('chatInput');
             const chatLogs = document.getElementById('chatLogs');
             const prompt = input.value.trim();
-
             if (!prompt) return;
 
-            const userMsg = document.createElement('p');
-            userMsg.style.marginBottom = '8px';
-            userMsg.innerHTML = `<strong style="color: var(--accent-blue);">You:</strong> ${prompt}`;
+            const userMsg = document.createElement('div');
+            userMsg.style.alignSelf = 'flex-end';
+            userMsg.style.background = 'rgba(56, 189, 248, 0.15)';
+            userMsg.style.padding = '8px 12px';
+            userMsg.style.borderRadius = '8px';
+            userMsg.innerHTML = `<strong style="color: var(--accent-blue); font-size: 0.75rem; display:block;">YOU</strong> ${prompt}`;
             chatLogs.appendChild(userMsg);
             input.value = '';
 
             try {
-                const response = await fetch('/api/chat', {
+                const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: prompt })
                 });
-                const data = await response.json();
+                const data = await res.json();
 
-                const aiMsg = document.createElement('p');
-                aiMsg.style.marginBottom = '12px';
-                aiMsg.innerHTML = `<strong style="color: var(--success-green);">Groq AI:</strong> ${data.response}`;
+                const aiMsg = document.createElement('div');
+                aiMsg.style.alignSelf = 'flex-start';
+                aiMsg.style.background = 'var(--card-bg)';
+                aiMsg.style.border = '1px solid var(--panel-border)';
+                aiMsg.style.padding = '8px 12px';
+                aiMsg.style.borderRadius = '8px';
+                aiMsg.innerHTML = `<strong style="color: var(--success-green); font-size: 0.75rem; display:block;">GROQ AI</strong> ${data.response}`;
                 chatLogs.appendChild(aiMsg);
                 chatLogs.scrollTop = chatLogs.scrollHeight;
             } catch (err) {
-                console.error("Chatbot response error:", err);
+                console.error("Chat error:", err);
             }
         }
     </script>
