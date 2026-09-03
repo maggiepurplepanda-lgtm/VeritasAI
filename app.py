@@ -34,6 +34,7 @@ DB_FILE = 'witnesses.json'
 # Store session analytics logs and speech transcripts in memory
 session_telemetry_logs = []
 session_transcripts = []
+session_anomalies = []
 
 # Load Gemini configuration from environment variables.
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
@@ -163,8 +164,26 @@ def get_session_summary():
         "total_frames_logged": len(session_telemetry_logs),
         "total_high_stress_anomalies": len(anomalies),
         "total_transcripts_logged": len(session_transcripts),
+        "total_anomalies_flagged": len(session_anomalies),
         "anomaly_timestamps": [a.get('timestamp') for a in anomalies]
     }), 200
+
+@app.route('/api/anomalies/flag', methods=['POST'])
+def flag_anomaly():
+    """Stores an anomaly flagged by the dashboard timeline."""
+    data = request.get_json(silent=True) or {}
+    if not data.get('timestamp') or data.get('score') is None or not data.get('cluster_type'):
+        return jsonify({"error": "Missing anomaly timestamp, score, or cluster type"}), 400
+
+    anomaly = {
+        "timestamp": data['timestamp'],
+        "score": data['score'],
+        "cluster_type": data['cluster_type'],
+        "details": data.get('details', ''),
+        "server_timestamp": datetime.now().isoformat(),
+    }
+    session_anomalies.append(anomaly)
+    return jsonify({"status": "success", "logged_anomalies": len(session_anomalies)}), 200
 
 # --- HISTORICAL WITNESS PROFILING ENDPOINTS ---
 
