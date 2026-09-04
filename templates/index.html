@@ -98,6 +98,9 @@
             border: 1px solid var(--panel-border);
             cursor: pointer;
             transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
         }
 
         .btn-icon:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
@@ -186,6 +189,26 @@
             font-weight: 600;
             font-size: 0.85rem;
             cursor: pointer;
+        }
+
+        /* Fixed Chart Wrapper */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            margin: 4px 0;
+            background: var(--card-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        .chart-container canvas {
+            transform: none !important; /* Prevents webcam flip CSS inheritance */
+            width: 100% !important;
+            height: 100% !important;
         }
 
         /* Timeline & Scrubber UI */
@@ -333,7 +356,7 @@
                 <label>Sampling Frequency <span id="fpsVal" style="color: var(--accent-blue);">30 FPS</span></label>
                 <input type="range" id="fpsRange" min="10" max="60" value="30" oninput="document.getElementById('fpsVal').innerText = this.value + ' FPS'">
             </div>
-            <div class="setting-toggle" style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="setting-toggle" style="display: flex; justify-content: space-between; align-items: center;"></div>
                 <span>Record Session Telemetry</span>
                 <input type="checkbox" checked style="accent-color: var(--accent-blue);">
             </div>
@@ -348,6 +371,7 @@
             <span class="brand-badge">Pro v2.5</span>
         </div>
         <div class="nav-actions">
+            <a href="/" class="btn-icon">🏠 Landing</a>
             <button class="btn-icon" onclick="calibrateBaseline()">🎯 Calibrate</button>
             <button class="btn-icon" onclick="exportPDFReport()">📄 Export PDF</button>
             <button class="btn-icon" onclick="toggleSettings()">⚙️ Settings</button>
@@ -421,8 +445,8 @@
                 </div>
             </div>
 
-            <!-- Chart Canvas (Clickable Line) -->
-            <div style="height: 140px; cursor: pointer;" title="Click anywhere on chart to jump to timestamp">
+            <!-- Chart Canvas Wrapper -->
+            <div class="chart-container" title="Click anywhere on chart to jump to timestamp">
                 <canvas id="telemetryChart"></canvas>
             </div>
 
@@ -679,9 +703,17 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: { top: 10, bottom: 5, left: 0, right: 10 }
+                },
                 scales: {
                     x: { display: false },
-                    y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    y: { 
+                        min: 0, 
+                        max: 100, 
+                        ticks: { color: '#94a3b8', font: { size: 10 } }, 
+                        grid: { color: 'rgba(255,255,255,0.05)' } 
+                    }
                 },
                 plugins: { legend: { display: false } }
             }
